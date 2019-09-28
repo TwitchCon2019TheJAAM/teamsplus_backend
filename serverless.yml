@@ -1,0 +1,88 @@
+service:
+  name: ebs
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+  - serverless-dotenv-plugin
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: us-west-2
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: get
+          path: hello
+
+  teamUsersGet:
+    handler: handler.getTeamUsers
+    events:
+      - http:
+          method: get
+          path: team/all/{id}
+
+  setTeamUser:
+    environment:
+      EXTENSION_SECRET: ${env:EXTENSION_SECRET}
+    handler: handler.setTeamUser
+    events:
+      - http:
+          method: post
+          path: team/{id}
+
+  viewerUserGet:
+    handler: handler.getViewerRole
+    events:
+      - http:
+          method: get
+          path: team/{id}
+
+  getTeamId:
+    handler: handler.getTeamId
+    events:
+      - http:
+          method: get
+          path: user/{id}
+
+  setTeamId:
+    handler: handler.setTeamId
+    events:
+      - http:
+          method: post
+          path: user/{id}
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
