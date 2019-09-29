@@ -24,12 +24,6 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          method: get
-          path: hello
 
   teamUsersGet:
     handler: handler.getTeamUsers
@@ -37,6 +31,7 @@ functions:
       - http:
           method: get
           path: team/all/{id}
+          cors: true
 
   setTeamUser:
     environment:
@@ -46,6 +41,7 @@ functions:
       - http:
           method: post
           path: team/{id}
+          cors: true
 
   viewerUserGet:
     handler: handler.getViewerRole
@@ -53,6 +49,7 @@ functions:
       - http:
           method: get
           path: team/{id}
+          cors: true
 
   getTeamId:
     handler: handler.getTeamId
@@ -60,6 +57,7 @@ functions:
       - http:
           method: get
           path: user/{id}
+          cors: true
 
   setTeamId:
     handler: handler.setTeamId
@@ -67,6 +65,7 @@ functions:
       - http:
           method: post
           path: user/{id}
+          cors: true
 
 resources:
   Resources:

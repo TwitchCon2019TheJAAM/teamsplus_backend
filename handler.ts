@@ -44,14 +44,20 @@ export const getTeamUsers: APIGatewayProxyHandler = async (event, _context) => {
     }
     return {
       statusCode: 200,
-      body: JSON.stringify(retData)
+      body: JSON.stringify(retData),
+      headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true, }
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: error.statusCode || 501,
-      headers: { 'Content-Type': 'text/plain' },
-      body: `Failed to fetch team ${teamId}`
+      headers: { 'Content-Type': 'text/plain',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true, },
+      body: `Failed to fetch team ${teamId}`,
+      
     }
   }
 }
@@ -96,21 +102,43 @@ export const setTeamUser: APIGatewayProxyHandler = async (event, _context) => {
 
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true, },
     body: JSON.stringify({
-      message: `Successfully assigned ${user} to role ${role} for team ${teamId}`
+      message: `Successfully assigned ${user} to role ${role} for team ${teamId}`,
     }, null, 2),
   };
 }
 
 export const getViewerRole: APIGatewayProxyHandler = async (event, _context) => {
   const userId = event.pathParameters.id;
-  const streamId = event.queryStringParameters.stream_id;
+  // const streamId = event.queryStringParameters.stream_id;
+
+  //TODO: Find a team with this streamid as a member
+  const teamId = 'TEST_TEAM';
+  let dbData = await internalGetTeam(teamId);
+  if(!dbData) {
+    console.error(`Failed to fetch team ${teamId}`);
+    return {
+      statusCode: 501,
+      headers: { 'Content-Type': 'text/plain' },
+      body: `Failed to fetch team ${teamId}`
+    }
+  }
+
+  const viewer = dbData.viewers[userId];
+  const role = viewer ? viewer.role : 'unassigned';
+
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true, },
     body: JSON.stringify({
-      team: streamId,
+      team: teamId,
       id: userId,
-      role: 'TRUSTED',
+      role: role,
     }, null, 2),
   };
 }
@@ -120,6 +148,9 @@ export const getTeamId: APIGatewayProxyHandler = async (event, _context) => {
   console.log(`giving fake team TEST_TEAM to ${userId}`);
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true, },
     body: JSON.stringify({
       team: "TEST_TEAM",
     }, null, 2),
@@ -146,6 +177,9 @@ export const setTeamId: APIGatewayProxyHandler = async (event, _context) => {
   const teamId = data.team_id;
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true, },
     body: JSON.stringify({
       message: `Successfully added ${userId} to team ${teamId}`
     }, null, 2),
